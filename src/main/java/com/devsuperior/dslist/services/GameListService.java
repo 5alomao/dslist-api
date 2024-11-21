@@ -3,8 +3,10 @@ package com.devsuperior.dslist.services;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.devsuperior.dslist.dto.GameListDTO;
 import com.devsuperior.dslist.entities.GameList;
@@ -29,7 +31,15 @@ public class GameListService {
 
 	@Transactional
 	public void move(Long listId, int sourceIndex, int destinationIndex) {
+		if (!gameListRepository.existsById(listId)) {
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Lista não encontrada");
+		}
+
 		List<GameMinProjection> list = gameRepository.searchByList(listId);
+		if (sourceIndex < 0 || sourceIndex >= list.size() || destinationIndex < 0
+				|| destinationIndex >= list.size()) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Índices inválidos");
+		}
 
 		GameMinProjection obj = list.remove(sourceIndex);
 		list.add(destinationIndex, obj);
